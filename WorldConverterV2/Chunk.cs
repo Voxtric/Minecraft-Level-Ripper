@@ -1,4 +1,7 @@
-﻿namespace WorldConverterV2
+﻿using System;
+using System.IO;
+
+namespace WorldConverterV2
 {
   class Chunk
   {
@@ -28,9 +31,25 @@
       }
     }
 
-    public byte GetVoxel(uint x, uint y, uint z)
+    public void WriteData(uint chunkX, uint chunkZ, string directoryPath)
     {
-      return m_voxelData[x, y, z];
+      string filePath = string.Format("{0}\\{1}.{2}.vdat", directoryPath, chunkX, chunkZ);
+      Directory.CreateDirectory(directoryPath);
+      byte[] bytes = new byte[DIMESNION_X * DIMENSION_Y * DIMENSION_Z];
+      uint byteIndex = 0;
+      for (uint x = 0; x < DIMESNION_X; ++x)
+      {
+        for (uint y = 0; y < DIMENSION_Y; ++y)
+        {
+          for (uint z = 0; z < DIMENSION_Z; ++z)
+          {
+            bytes[byteIndex] = m_voxelData[x, y, z];
+            ++byteIndex;
+          }
+        }
+      }
+      File.WriteAllBytes(filePath, bytes);
+      Console.WriteLine(string.Format("Wrote file for chunk at {0}, {1}", chunkX, chunkZ));
     }
   }
 }

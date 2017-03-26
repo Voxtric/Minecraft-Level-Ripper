@@ -14,6 +14,13 @@ namespace WorldConverterV2
     {
       byte[][] nbtChunksData = ReadFile("C:\\Users\\Benjamin\\Downloads\\Future CITY 4.1\\region\\r.0.0.mca");
       Chunk[,] chunks = ProcessData(nbtChunksData);
+      for (uint x = 0; x < REGION_DIMENSIONS; ++x)
+      {
+        for (uint z = 0; z < REGION_DIMENSIONS; ++z)
+        {
+          chunks[x, z].WriteData(x, z, "C:\\Users\\Benjamin\\Downloads\\Future CITY 4.1\\decompressed");
+        }
+      }
     }
     
     Chunk[,] ProcessData(byte[][] nbtChunksData)
@@ -22,7 +29,6 @@ namespace WorldConverterV2
       for (uint chunkIndex = 0; chunkIndex < nbtChunksData.Length; ++chunkIndex)
       {
         byte[] bytes = nbtChunksData[chunkIndex];
-        //File.WriteAllBytes(String.Format("C:\\Users\\Benjamin\\Downloads\\Future CITY 4.1\\region\\Chunk {0}.bin", chunkIndex), bytes);
         Chunk chunk = new Chunk();
         int chunkX = 0;
         int chunkZ = 0;
@@ -33,7 +39,6 @@ namespace WorldConverterV2
         while (byteIndex < bytes.Length)
         {
           TagType tagType = (TagType)bytes[byteIndex];
-          Console.Write(String.Format("{0} \t-\t", tagType));
           if (tagType > TagType.TAG_Int_Array)
           {
             throw new InvalidOperationException("Unrecognised TAG Type!");
@@ -42,7 +47,6 @@ namespace WorldConverterV2
           if (tagType == TagType.TAG_End)
           {
             ++byteIndex;
-            Console.WriteLine("");
           }
           else
           {
@@ -51,7 +55,6 @@ namespace WorldConverterV2
             Array.Copy(bytes, byteIndex + 3, tagNameBytes, 0, tagNameLength);
             string tagName = System.Text.Encoding.UTF8.GetString(tagNameBytes);
             byteIndex += 3 + tagNameLength;
-            Console.WriteLine(tagName);
 
             //Personal processing.
             if (tagType == TagType.TAG_Int)
@@ -102,6 +105,7 @@ namespace WorldConverterV2
           }
         }
         chunks[chunkX, chunkZ] = chunk;
+        Console.WriteLine(String.Format("Read NBT data for chunk at {0}, {1}", chunkX, chunkZ));
       }
       return chunks;
     }
@@ -157,10 +161,10 @@ namespace WorldConverterV2
       return tagDataSize;
     }
 
-    public byte[][] ReadFile(string fileName)
+    public byte[][] ReadFile(string filePath)
     {
       byte[][] nbtChunkData = new byte[REGION_DIMENSIONS * REGION_DIMENSIONS][];
-      byte[] bytes = File.ReadAllBytes(fileName);
+      byte[] bytes = File.ReadAllBytes(filePath);
 
       uint j = 0;
       for (uint byteIndex = 0; byteIndex < REGION_DIMENSIONS * REGION_DIMENSIONS * 4; byteIndex += 4)
@@ -183,6 +187,7 @@ namespace WorldConverterV2
           }
           nbtChunkData[j] = outputStream.ToArray();
         }
+        Console.WriteLine(String.Format("Decompressed chunk {0}", j));
         ++j;
       }
       return nbtChunkData;
