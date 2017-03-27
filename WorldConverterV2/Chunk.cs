@@ -33,7 +33,7 @@ namespace WorldConverterV2
 
     public void WriteData(uint chunkX, uint chunkZ, string directoryPath)
     {
-      string filePath = string.Format("{0}\\{1}.{2}.vdat", directoryPath, chunkX, chunkZ);
+      string filePath = string.Format("{0}\\c.{1}.{2}.vdat", directoryPath, chunkX, chunkZ);
       Directory.CreateDirectory(directoryPath);
       byte[] bytes = new byte[DIMESNION_X * DIMENSION_Y * DIMENSION_Z];
       uint byteIndex = 0;
@@ -49,7 +49,6 @@ namespace WorldConverterV2
         }
       }
       File.WriteAllBytes(filePath, bytes);
-      Console.WriteLine(string.Format("Wrote file for chunk at {0}, {1}", chunkX, chunkZ));
     }
   }
 }

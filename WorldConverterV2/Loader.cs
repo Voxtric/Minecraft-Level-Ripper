@@ -10,9 +10,11 @@ namespace WorldConverterV2
     public const uint SECTOR_SIZE = 1024 * 4;
     public const uint SECTION_DIMENSIONS = 16;
 
-    Loader()
+    public void LoadFile(string filePath)
     {
-      byte[][] nbtChunksData = ReadFile("C:\\Users\\Benjamin\\Downloads\\Future CITY 4.1\\region\\r.0.0.mca");
+      string parentDirectory = Directory.GetParent(filePath).ToString();
+
+      byte[][] nbtChunksData = ReadFile(filePath);
       Chunk[,] chunks = ProcessData(nbtChunksData);
       for (uint x = 0; x < REGION_DIMENSIONS; ++x)
       {
@@ -20,13 +22,14 @@ namespace WorldConverterV2
         {
           if (chunks[x, z] != null)
           {
-            chunks[x, z].WriteData(x, z, "C:\\Users\\Benjamin\\Downloads\\Future CITY 4.1\\decompressed");
+            string newFilePath = string.Format("{0}\\decompressed\\{1}", parentDirectory, Path.GetFileNameWithoutExtension(filePath));
+            chunks[x, z].WriteData(x, z, newFilePath);
           }
         }
       }
     }
     
-    Chunk[,] ProcessData(byte[][] nbtChunksData)
+    private Chunk[,] ProcessData(byte[][] nbtChunksData)
     {
       Chunk[,] chunks = new Chunk[REGION_DIMENSIONS, REGION_DIMENSIONS];
       for (uint chunkIndex = 0; chunkIndex < nbtChunksData.Length; ++chunkIndex)
@@ -109,14 +112,13 @@ namespace WorldConverterV2
               }
             }
           }
-          chunks[chunkX, chunkZ] = chunk;
-          Console.WriteLine(String.Format("Read NBT data for chunk at {0}, {1}", chunkX, chunkZ));
+          chunks[Math.Abs(chunkX) % REGION_DIMENSIONS, Math.Abs(chunkZ) % REGION_DIMENSIONS] = chunk;
         }
       }
       return chunks;
     }
 
-    public uint GetTagDataSize(TagType tagType, byte[] bytes, uint byteIndex)
+    private uint GetTagDataSize(TagType tagType, byte[] bytes, uint byteIndex)
     {
       uint tagDataSize;
       switch (tagType)
@@ -167,7 +169,7 @@ namespace WorldConverterV2
       return tagDataSize;
     }
 
-    public byte[][] ReadFile(string filePath)
+    private byte[][] ReadFile(string filePath)
     {
       byte[][] nbtChunkData = new byte[REGION_DIMENSIONS * REGION_DIMENSIONS][];
       byte[] bytes = File.ReadAllBytes(filePath);
@@ -194,7 +196,6 @@ namespace WorldConverterV2
             }
             nbtChunkData[j] = outputStream.ToArray();
           }
-          Console.WriteLine(String.Format("Decompressed chunk {0}", j));
         }
         ++j;
       }
@@ -204,6 +205,18 @@ namespace WorldConverterV2
     static void Main(string[] args)
     {
       Loader loader = new Loader();
+      for (uint i = 0; i < args.Length; ++i)
+      {
+        if (args[i].EndsWith(".mca"))
+        {
+          Console.WriteLine(string.Format("Processing {0}...", args[i]));
+          loader.LoadFile(args[i]);
+        }
+        else
+        {
+          Console.WriteLine(string.Format("Unsupported file format: {0}", Path.GetExtension(args[i])));
+        }
+      }
 
       Console.Write("Press any key to continue...");
       Console.ReadKey();
