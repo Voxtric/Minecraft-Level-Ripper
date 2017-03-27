@@ -18,7 +18,10 @@ namespace WorldConverterV2
       {
         for (uint z = 0; z < REGION_DIMENSIONS; ++z)
         {
-          chunks[x, z].WriteData(x, z, "C:\\Users\\Benjamin\\Downloads\\Future CITY 4.1\\decompressed");
+          if (chunks[x, z] != null)
+          {
+            chunks[x, z].WriteData(x, z, "C:\\Users\\Benjamin\\Downloads\\Future CITY 4.1\\decompressed");
+          }
         }
       }
     }
@@ -29,83 +32,86 @@ namespace WorldConverterV2
       for (uint chunkIndex = 0; chunkIndex < nbtChunksData.Length; ++chunkIndex)
       {
         byte[] bytes = nbtChunksData[chunkIndex];
-        Chunk chunk = new Chunk();
-        int chunkX = 0;
-        int chunkZ = 0;
-        byte y = byte.MaxValue;
-        byte[] voxelData = null;
-
-        uint byteIndex = 0;
-        while (byteIndex < bytes.Length)
+        if (bytes != null)
         {
-          TagType tagType = (TagType)bytes[byteIndex];
-          if (tagType > TagType.TAG_Int_Array)
-          {
-            throw new InvalidOperationException("Unrecognised TAG Type!");
-          }
+          Chunk chunk = new Chunk();
+          int chunkX = 0;
+          int chunkZ = 0;
+          byte y = byte.MaxValue;
+          byte[] voxelData = null;
 
-          if (tagType == TagType.TAG_End)
+          uint byteIndex = 0;
+          while (byteIndex < bytes.Length)
           {
-            ++byteIndex;
-          }
-          else
-          {
-            uint tagNameLength = (uint)(bytes[byteIndex + 1] << 8) | bytes[byteIndex + 2];
-            byte[] tagNameBytes = new byte[tagNameLength];
-            Array.Copy(bytes, byteIndex + 3, tagNameBytes, 0, tagNameLength);
-            string tagName = System.Text.Encoding.UTF8.GetString(tagNameBytes);
-            byteIndex += 3 + tagNameLength;
+            TagType tagType = (TagType)bytes[byteIndex];
+            if (tagType > TagType.TAG_Int_Array)
+            {
+              throw new InvalidOperationException("Unrecognised TAG Type!");
+            }
 
-            //Personal processing.
-            if (tagType == TagType.TAG_Int)
+            if (tagType == TagType.TAG_End)
             {
-              if (tagName == "xPos")
-              {
-                chunkX = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
-              }
-              else if (tagName == "zPos")
-              {
-                chunkZ = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
-              }
-            }
-            else if (tagType == TagType.TAG_Byte_Array && tagName == "Blocks")
-            {
-              voxelData = new byte[SECTION_DIMENSIONS * SECTION_DIMENSIONS * SECTION_DIMENSIONS];
-              for (uint i = 0; i < SECTION_DIMENSIONS * SECTION_DIMENSIONS * SECTION_DIMENSIONS; ++i)
-              {
-                voxelData[i] = bytes[4 + byteIndex + i];
-              }
-              if (y != byte.MaxValue)
-              {
-                chunk.SetVoxelData(y, voxelData);
-                y = byte.MaxValue;
-                voxelData = null;
-              }
-            }
-            else if (tagType == TagType.TAG_Byte && tagName == "Y")
-            {
-              y = bytes[byteIndex];
-              if (voxelData != null)
-              {
-                chunk.SetVoxelData(y, voxelData);
-                y = byte.MaxValue;
-                voxelData = null;
-              }
-            }
-            
-            //Skips the generally useless list tag.
-            if (tagType == TagType.TAG_List && tagName == "Sections")
-            {
-              byteIndex += 5;
+              ++byteIndex;
             }
             else
             {
-              byteIndex += GetTagDataSize(tagType, bytes, byteIndex);
+              uint tagNameLength = (uint)(bytes[byteIndex + 1] << 8) | bytes[byteIndex + 2];
+              byte[] tagNameBytes = new byte[tagNameLength];
+              Array.Copy(bytes, byteIndex + 3, tagNameBytes, 0, tagNameLength);
+              string tagName = System.Text.Encoding.UTF8.GetString(tagNameBytes);
+              byteIndex += 3 + tagNameLength;
+
+              //Personal processing.
+              if (tagType == TagType.TAG_Int)
+              {
+                if (tagName == "xPos")
+                {
+                  chunkX = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
+                }
+                else if (tagName == "zPos")
+                {
+                  chunkZ = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
+                }
+              }
+              else if (tagType == TagType.TAG_Byte_Array && tagName == "Blocks")
+              {
+                voxelData = new byte[SECTION_DIMENSIONS * SECTION_DIMENSIONS * SECTION_DIMENSIONS];
+                for (uint i = 0; i < SECTION_DIMENSIONS * SECTION_DIMENSIONS * SECTION_DIMENSIONS; ++i)
+                {
+                  voxelData[i] = bytes[4 + byteIndex + i];
+                }
+                if (y != byte.MaxValue)
+                {
+                  chunk.SetVoxelData(y, voxelData);
+                  y = byte.MaxValue;
+                  voxelData = null;
+                }
+              }
+              else if (tagType == TagType.TAG_Byte && tagName == "Y")
+              {
+                y = bytes[byteIndex];
+                if (voxelData != null)
+                {
+                  chunk.SetVoxelData(y, voxelData);
+                  y = byte.MaxValue;
+                  voxelData = null;
+                }
+              }
+
+              //Skips the generally useless list tag.
+              if (tagType == TagType.TAG_List && tagName == "Sections")
+              {
+                byteIndex += 5;
+              }
+              else
+              {
+                byteIndex += GetTagDataSize(tagType, bytes, byteIndex);
+              }
             }
           }
+          chunks[chunkX, chunkZ] = chunk;
+          Console.WriteLine(String.Format("Read NBT data for chunk at {0}, {1}", chunkX, chunkZ));
         }
-        chunks[chunkX, chunkZ] = chunk;
-        Console.WriteLine(String.Format("Read NBT data for chunk at {0}, {1}", chunkX, chunkZ));
       }
       return chunks;
     }
@@ -170,24 +176,26 @@ namespace WorldConverterV2
       for (uint byteIndex = 0; byteIndex < REGION_DIMENSIONS * REGION_DIMENSIONS * 4; byteIndex += 4)
       {
         ulong chunkStart = (ulong)((bytes[byteIndex] << 16) | (bytes[byteIndex + 1] << 8) | bytes[byteIndex + 2]) * SECTOR_SIZE;
-
-        uint chunkSize = (uint)((bytes[chunkStart] << 24) | (bytes[chunkStart + 1] << 16) | (bytes[chunkStart + 2] << 8) | bytes[chunkStart + 3]) - 1;
-
-        byte[] chunkData = new byte[chunkSize];
-        for (uint i = 0; i < chunkSize; ++i)
+        if (chunkStart > 0)
         {
-          chunkData[i] = bytes[chunkStart + 5 + i];
-        }
-        
-        using (MemoryStream outputStream = new MemoryStream())
-        {
-          using (InflaterInputStream inputStream = new InflaterInputStream(new MemoryStream(chunkData)))
+          uint chunkSize = (uint)((bytes[chunkStart] << 24) | (bytes[chunkStart + 1] << 16) | (bytes[chunkStart + 2] << 8) | bytes[chunkStart + 3]) - 1;
+
+          byte[] chunkData = new byte[chunkSize];
+          for (uint i = 0; i < chunkSize; ++i)
           {
-            inputStream.CopyTo(outputStream);
+            chunkData[i] = bytes[chunkStart + 5 + i];
           }
-          nbtChunkData[j] = outputStream.ToArray();
+
+          using (MemoryStream outputStream = new MemoryStream())
+          {
+            using (InflaterInputStream inputStream = new InflaterInputStream(new MemoryStream(chunkData)))
+            {
+              inputStream.CopyTo(outputStream);
+            }
+            nbtChunkData[j] = outputStream.ToArray();
+          }
+          Console.WriteLine(String.Format("Decompressed chunk {0}", j));
         }
-        Console.WriteLine(String.Format("Decompressed chunk {0}", j));
         ++j;
       }
       return nbtChunkData;
