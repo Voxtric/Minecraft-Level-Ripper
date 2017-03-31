@@ -88,9 +88,10 @@ namespace WorldConverter
               throw new InvalidOperationException("Unrecognised TAG Type!");
             }
 
+            //Skips over the end tag as it doesn't contain any useful information.
             if (tagType == TagType.TAG_End)
             {
-              ++byteIndex;
+               byteIndex += GetTagDataSize(tagType, null, 0);
             }
             else
             {
@@ -139,13 +140,16 @@ namespace WorldConverter
       {
         if (tagName == "xPos")
         {
-          chunkInfo.chunkX = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
+          chunkInfo.chunkX = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) |
+            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
         }
         else if (tagName == "zPos")
         {
-          chunkInfo.chunkZ = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
+          chunkInfo.chunkZ = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | 
+            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
         }
       }
+      //Writes chunk data to chunk only if all the data necessary to do so has been read.
       else if (tagType == TagType.TAG_Byte_Array && tagName == "Blocks")
       {
         chunkInfo.voxelData = new byte[SECTION_DIMENSIONS * SECTION_DIMENSIONS * SECTION_DIMENSIONS];
@@ -209,7 +213,8 @@ namespace WorldConverter
           tagDataSize = 8;
           break;
         case TagType.TAG_Byte_Array:
-          int byteArrayLength = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
+          int byteArrayLength = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | 
+            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
           tagDataSize = 4 + (uint)byteArrayLength;
           break;
         case TagType.TAG_String:
@@ -219,14 +224,18 @@ namespace WorldConverter
         case TagType.TAG_List:
           TagType listTagType = (TagType)bytes[byteIndex];
           uint listTagDataSize = GetTagDataSize(listTagType, null, 0);
-          int listLength = (bytes[byteIndex + 1] << 24) | (bytes[byteIndex + 2] << 16) | (bytes[byteIndex + 3] << 8) | bytes[byteIndex + 4];
+          int listLength = (bytes[byteIndex + 1] << 24) | (bytes[byteIndex + 2] << 16) | 
+            (bytes[byteIndex + 3] << 8) | bytes[byteIndex + 4];
           tagDataSize = 5 + (uint)(listTagDataSize * listLength);          
           break;
         case TagType.TAG_Compound:
+          //Just skip directly into the contents of the compound tag as it's size cannot be worked
+          //from the information declaring the tag.
           tagDataSize = 0;
           break;
         case TagType.TAG_Int_Array:
-          int intArrayLength = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
+          int intArrayLength = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) |
+            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
           tagDataSize = 4 + (uint)(intArrayLength * 4);
           break;
         default:
@@ -249,20 +258,26 @@ namespace WorldConverter
       uint chunkIndex = 0;
       for (uint byteIndex = 0; byteIndex < REGION_DIMENSIONS * REGION_DIMENSIONS * 4; byteIndex += 4)
       {
-        ulong chunkStart = (ulong)((bytes[byteIndex] << 16) | (bytes[byteIndex + 1] << 8) | bytes[byteIndex + 2]) * SECTOR_SIZE;
+        //Reads the header of the file for the chunks location.
+        ulong chunkStart = (ulong)((bytes[byteIndex] << 16) |
+          (bytes[byteIndex + 1] << 8) | bytes[byteIndex + 2]) * SECTOR_SIZE;
         if (chunkStart > 0)
         {
-          uint chunkSize = (uint)((bytes[chunkStart] << 24) | (bytes[chunkStart + 1] << 16) | (bytes[chunkStart + 2] << 8) | bytes[chunkStart + 3]) - 1;
+          uint chunkSize = (uint)((bytes[chunkStart] << 24) | (bytes[chunkStart + 1] << 16) | 
+            (bytes[chunkStart + 2] << 8) | bytes[chunkStart + 3]) - 1;
 
+          //Transfers the chunk specific data out of the byte array of the entire file.
           byte[] chunkData = new byte[chunkSize];
           for (uint i = 0; i < chunkSize; ++i)
           {
             chunkData[i] = bytes[chunkStart + 5 + i];
           }
 
+          //Decompresses the chunk data into its raw NBT format.
           using (MemoryStream outputStream = new MemoryStream())
           {
-            using (InflaterInputStream inputStream = new InflaterInputStream(new MemoryStream(chunkData)))
+            using (InflaterInputStream inputStream = 
+              new InflaterInputStream(new MemoryStream(chunkData)))
             {
               inputStream.CopyTo(outputStream);
             }
@@ -286,6 +301,7 @@ namespace WorldConverter
         if (args[i].EndsWith(".mcr") || args[i].EndsWith(".mca"))
         {
           Console.WriteLine(string.Format("Processing {0}...", args[i]));
+          //Processes each valid file.
           processor.ProcessFile(args[i]);
         }
         else

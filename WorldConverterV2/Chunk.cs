@@ -58,6 +58,8 @@ namespace WorldConverter
     {
       string filePath = string.Format("{0}\\c.{1}.{2}.vdat", directoryPath, chunkX, chunkZ);
       Directory.CreateDirectory(directoryPath); //Ensures the directory always exists.
+
+      //Reads bytes out of the chunk format into a byte array for writing to disk.
       byte[] bytes = new byte[DIMENSION_X * DIMENSION_Y * DIMENSION_Z];
       uint byteIndex = 0;
       for (uint x = 0; x < DIMENSION_X; ++x)
