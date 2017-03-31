@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldConverterV2", "WorldConverterV2\WorldConverterV2.csproj", "{0192F70D-301F-4FDB-81FD-605AFEDD9C86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorldConverterTest", "WorldConverterTest\WorldConverterTest.csproj", "{9814AA51-A594-4990-A284-A6C3337B25DD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{0192F70D-301F-4FDB-81FD-605AFEDD9C86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0192F70D-301F-4FDB-81FD-605AFEDD9C86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0192F70D-301F-4FDB-81FD-605AFEDD9C86}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9814AA51-A594-4990-A284-A6C3337B25DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9814AA51-A594-4990-A284-A6C3337B25DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9814AA51-A594-4990-A284-A6C3337B25DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9814AA51-A594-4990-A284-A6C3337B25DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
