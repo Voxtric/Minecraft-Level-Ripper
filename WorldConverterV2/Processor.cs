@@ -42,7 +42,13 @@ namespace WorldConverter
     {
       string parentDirectory = Directory.GetParent(filePath).ToString();
       byte[][] nbtChunksData = ReadFile(filePath);
-      Chunk[,] chunks = ProcessData(nbtChunksData);
+
+      int chunkXOffset, chunkZOffset;
+      string[] fileInfo = Path.GetFileName(filePath).Split('.');
+      chunkXOffset = int.Parse(fileInfo[1]) < 0 ? -1 : 1;
+      chunkZOffset = int.Parse(fileInfo[2]) < 0 ? -1 : 1;
+
+      Chunk[,] chunks = ProcessData(nbtChunksData, chunkXOffset, chunkZOffset);
       for (uint x = 0; x < REGION_DIMENSIONS; ++x)
       {
         for (uint z = 0; z < REGION_DIMENSIONS; ++z)
@@ -65,7 +71,7 @@ namespace WorldConverter
     /// <param name="nbtChunksData">Chunk data in the form of an NBT file.</param>
     /// <returns>2D <see cref="Chunk"/> array filled with relevent data. Null chunks are empty.
     /// </returns>
-    private Chunk[,] ProcessData(byte[][] nbtChunksData)
+    private Chunk[,] ProcessData(byte[][] nbtChunksData, int chunkXOffset, int chunkZOffset)
     {
       Chunk[,] chunks = new Chunk[REGION_DIMENSIONS, REGION_DIMENSIONS];
       //Loops through all the NBT chunk data to create the necessary chunks.
@@ -114,7 +120,27 @@ namespace WorldConverter
               }
             }
           }
-          chunks[REGION_DIMENSIONS - (chunkInfo.chunkX % REGION_DIMENSIONS) - 1, REGION_DIMENSIONS - (chunkInfo.chunkZ % REGION_DIMENSIONS) - 1] = chunk;
+          uint chunkXLocation;
+          if (chunkXOffset == -1)
+          {
+            chunkXLocation = (uint)(REGION_DIMENSIONS - ((chunkInfo.chunkX + chunkXOffset) % REGION_DIMENSIONS) - 1);
+          }
+          else
+          {
+            chunkXLocation = (uint)((chunkInfo.chunkX) % REGION_DIMENSIONS);
+          }
+
+          uint chunkZLocation;
+          if (chunkXOffset == -1)
+          {
+            chunkZLocation = (uint)(REGION_DIMENSIONS - ((chunkInfo.chunkZ + chunkZOffset) % REGION_DIMENSIONS) - 1);
+          }
+          else
+          {
+            chunkZLocation = (uint)((chunkInfo.chunkZ) % REGION_DIMENSIONS);
+          }
+
+          chunks[chunkXLocation, chunkZLocation] = chunk;
         }
       }
       return chunks;
@@ -141,12 +167,12 @@ namespace WorldConverter
         if (tagName == "xPos")
         {
           chunkInfo.chunkX = Math.Abs((bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) |
-            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3]) - 1;
+            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3]);
         }
         else if (tagName == "zPos")
         {
           chunkInfo.chunkZ = Math.Abs((bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | 
-            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3]) - 1;
+            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3]);
         }
       }
       //Writes chunk data to chunk only if all the data necessary to do so has been read.
