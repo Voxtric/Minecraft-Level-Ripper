@@ -114,7 +114,7 @@ namespace WorldConverter
               }
             }
           }
-          chunks[Math.Abs(chunkInfo.chunkX) % REGION_DIMENSIONS, Math.Abs(chunkInfo.chunkZ) % REGION_DIMENSIONS] = chunk;
+          chunks[REGION_DIMENSIONS - (Math.Abs(chunkInfo.chunkX) % REGION_DIMENSIONS) - 1, REGION_DIMENSIONS - (Math.Abs(chunkInfo.chunkZ) % REGION_DIMENSIONS) - 1] = chunk;
         }
       }
       return chunks;
