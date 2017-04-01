@@ -100,7 +100,7 @@ namespace WorldConverter
               Array.Copy(bytes, byteIndex + 3, tagNameBytes, 0, tagNameLength);
               string tagName = System.Text.Encoding.UTF8.GetString(tagNameBytes);
               byteIndex += 3 + tagNameLength;
-              ExtractChunkInfo(bytes, byteIndex, chunk, ref chunkInfo, tagType, tagName);              
+              ExtractChunkInfo(bytes, byteIndex, chunk, ref chunkInfo, tagType, tagName);
 
               //Steps into the contents of the list tag if it's the one we want.
               if (tagType == TagType.TAG_List && tagName == "Sections")
@@ -114,7 +114,7 @@ namespace WorldConverter
               }
             }
           }
-          chunks[REGION_DIMENSIONS - (Math.Abs(chunkInfo.chunkX) % REGION_DIMENSIONS) - 1, REGION_DIMENSIONS - (Math.Abs(chunkInfo.chunkZ) % REGION_DIMENSIONS) - 1] = chunk;
+          chunks[REGION_DIMENSIONS - (chunkInfo.chunkX % REGION_DIMENSIONS) - 1, REGION_DIMENSIONS - (chunkInfo.chunkZ % REGION_DIMENSIONS) - 1] = chunk;
         }
       }
       return chunks;
@@ -140,13 +140,13 @@ namespace WorldConverter
       {
         if (tagName == "xPos")
         {
-          chunkInfo.chunkX = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) |
-            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
+          chunkInfo.chunkX = Math.Abs((bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) |
+            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3]) - 1;
         }
         else if (tagName == "zPos")
         {
-          chunkInfo.chunkZ = (bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | 
-            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3];
+          chunkInfo.chunkZ = Math.Abs((bytes[byteIndex] << 24) | (bytes[byteIndex + 1] << 16) | 
+            (bytes[byteIndex + 2] << 8) | bytes[byteIndex + 3]) - 1;
         }
       }
       //Writes chunk data to chunk only if all the data necessary to do so has been read.
