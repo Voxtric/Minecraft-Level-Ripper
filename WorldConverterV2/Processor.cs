@@ -127,17 +127,17 @@ namespace WorldConverter
           }
           else
           {
-            chunkXLocation = (uint)((chunkInfo.chunkX) % REGION_DIMENSIONS);
+            chunkXLocation = (uint)(chunkInfo.chunkX % REGION_DIMENSIONS);
           }
 
           uint chunkZLocation;
-          if (chunkXOffset == -1)
+          if (chunkZOffset == -1)
           {
             chunkZLocation = (uint)(REGION_DIMENSIONS - ((chunkInfo.chunkZ + chunkZOffset) % REGION_DIMENSIONS) - 1);
           }
           else
           {
-            chunkZLocation = (uint)((chunkInfo.chunkZ) % REGION_DIMENSIONS);
+            chunkZLocation = (uint)(chunkInfo.chunkZ % REGION_DIMENSIONS);
           }
 
           chunks[chunkXLocation, chunkZLocation] = chunk;
