@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using System.IO.Compression;
 
 namespace WorldConverter
 {
@@ -302,10 +302,12 @@ namespace WorldConverter
           //Decompresses the chunk data into its raw NBT format.
           using (MemoryStream outputStream = new MemoryStream())
           {
-            using (InflaterInputStream inputStream = 
-              new InflaterInputStream(new MemoryStream(chunkData)))
+			MemoryStream memInputStream = new MemoryStream(chunkData);
+			// RFC1950 zlib stream has 2 bytes at beginning which we ignore (CMF and FLG) - thanks http://george.chiramattel.com/blog/2007/09/deflatestream-block-length-does-not-match.html
+			memInputStream.Seek(2, SeekOrigin.Begin); 
+			using ( DeflateStream inputStream = new DeflateStream(memInputStream, CompressionMode.Decompress))
             {
-              inputStream.CopyTo(outputStream);
+              inputStream.CopyTo( outputStream );
             }
             nbtChunkData[chunkIndex] = outputStream.ToArray();
           }
