@@ -249,10 +249,25 @@ namespace WorldConverter
           break;
         case TagType.TAG_List:
           TagType listTagType = (TagType)bytes[byteIndex];
-          uint listTagDataSize = GetTagDataSize(listTagType, null, 0);
-          int listLength = (bytes[byteIndex + 1] << 24) | (bytes[byteIndex + 2] << 16) | 
-            (bytes[byteIndex + 3] << 8) | bytes[byteIndex + 4];
-          tagDataSize = 5 + (uint)(listTagDataSize * listLength);          
+          int listLength = (bytes[byteIndex + 1] << 24) | (bytes[byteIndex + 2] << 16) |
+          (bytes[byteIndex + 3] << 8) | bytes[byteIndex + 4];
+          const uint listTagHeaderSize = 5;
+          if (listTagType == TagType.TAG_String || listTagType == TagType.TAG_Byte_Array || listTagType == TagType.TAG_Int_Array)
+          {
+            // variable sized tag types, go through each in turn.
+            tagDataSize = listTagHeaderSize;
+            while (listLength != 0)
+            {
+              uint itemsize = GetTagDataSize(listTagType, bytes, byteIndex + tagDataSize);
+              tagDataSize += itemsize;
+              --listLength;
+            }
+          }
+          else
+          {
+            uint listTagDataSize = GetTagDataSize(listTagType, null, 0);
+            tagDataSize = listTagHeaderSize + (uint)(listTagDataSize * listLength);
+          }
           break;
         case TagType.TAG_Compound:
           //Just skip directly into the contents of the compound tag as it's size cannot be worked
